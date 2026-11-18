@@ -2,15 +2,23 @@ import pandas as pd
 import matplotlib.pyplot as plt
 
 df = pd.read_csv("results.csv")
-exp1 = df[df["exp"] == "exp1"]
-exp2 = df[df["exp"] == "exp2"]
+exp1 = (
+    df[(df["exp"] == "exp1") & (df["gamma_us_per_MB"] == 0)]
+    .pivot(index="msg_size_B", columns="method", values="mean_us")
+    .sort_index()
+)
+exp2 = (
+    df[(df["exp"] == "exp2") & (df["gamma_us_per_MB"] == 30)]
+    .pivot(index="msg_size_B", columns="method", values="perceived_bw_GBps")
+    .sort_index()
+)
 
 fig, (ax1, ax2) = plt.subplots(1, 2, figsize=(13, 5))
 
 # Plot 1: Replicating Figure 5/7 (Small Message Overhead)
-ax1.plot(exp1["msg_size"], exp1["single"], "o-", label="Pt2Pt single (Bulk Sync)", color="tab:orange", linewidth=2)
-ax1.plot(exp1["msg_size"], exp1["many"], "s-", label="Pt2Pt many (Pipelined)", color="tab:green", linewidth=2)
-ax1.plot(exp1["msg_size"], exp1["part"], "^--", label="Pt2Pt part (Open MPI 5.0)", color="tab:blue", linewidth=2)
+ax1.plot(exp1.index, exp1["single"], "o-", label="Pt2Pt single (Bulk Sync)", color="tab:orange", linewidth=2)
+ax1.plot(exp1.index, exp1["many"], "s-", label="Pt2Pt many (Pipelined)", color="tab:green", linewidth=2)
+ax1.plot(exp1.index, exp1["part"], "^--", label="Pt2Pt part (Open MPI 5.0)", color="tab:blue", linewidth=2)
 ax1.set_xscale("log")
 ax1.set_yscale("log")
 ax1.set_xlabel("Message Size [Bytes]")
@@ -20,9 +28,9 @@ ax1.grid(True, which="both", ls="--", alpha=0.5)
 ax1.legend()
 
 # Plot 2: Replicating Figure 8 (Early-Bird Bandwidth Crossover)
-ax2.plot(exp2["msg_size"], exp2["single"], "o-", label="Pt2Pt single (Bulk Sync)", color="tab:orange", linewidth=2)
-ax2.plot(exp2["msg_size"], exp2["many"], "s-", label="Pt2Pt many (Early-Bird Pipelined)", color="tab:green", linewidth=2)
-ax2.plot(exp2["msg_size"], exp2["part"], "^--", label="Pt2Pt part (Open MPI 5.0)", color="tab:blue", linewidth=2)
+ax2.plot(exp2.index, exp2["single"], "o-", label="Pt2Pt single (Bulk Sync)", color="tab:orange", linewidth=2)
+ax2.plot(exp2.index, exp2["many"], "s-", label="Pt2Pt many (Early-Bird Pipelined)", color="tab:green", linewidth=2)
+ax2.plot(exp2.index, exp2["part"], "^--", label="Pt2Pt part (Open MPI 5.0)", color="tab:blue", linewidth=2)
 ax2.set_xscale("log")
 ax2.set_yscale("log")
 ax2.set_xlabel("Message Size [Bytes]")
